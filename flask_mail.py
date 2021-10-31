@@ -15,7 +15,6 @@ __version__ = '0.9.1'
 
 import re
 import smtplib
-import sys
 import time
 import unicodedata
 
@@ -31,20 +30,7 @@ from contextlib import contextmanager
 import blinker
 from flask import current_app
 
-PY3 = sys.version_info[0] == 3
-
-PY34 = PY3 and sys.version_info[1] >= 4
-
-if PY3:
-    string_types = str
-    text_type = str
-    from email import policy
-
-    message_policy = policy.SMTP
-else:
-    string_types = basestring
-    text_type = unicode
-    message_policy = None
+from consts import text_type, string_types, PY3, message_policy, PY34
 
 charset.add_charset('utf-8', charset.SHORTEST, None, 'utf-8')
 
@@ -363,7 +349,7 @@ class Message:
             for k, v in self.extra_headers.items():
                 msg[k] = v
 
-        SPACES = re.compile(r'[\s]+', re.UNICODE)
+        spaces = re.compile(r'[\s]+', re.UNICODE)
         for attachment in attachments:
             f = MIMEBase(*attachment.content_type.split('/'))
             f.set_payload(attachment.data)
@@ -374,7 +360,7 @@ class Message:
                 # force filename to ascii
                 filename = unicodedata.normalize('NFKD', filename)
                 filename = filename.encode('ascii', 'ignore').decode('ascii')
-                filename = SPACES.sub(u' ', filename).strip()
+                filename = spaces.sub(u' ', filename).strip()
 
             try:
                 filename and filename.encode('ascii')
