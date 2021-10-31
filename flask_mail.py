@@ -14,7 +14,6 @@ from __future__ import with_statement
 __version__ = '0.9.1'
 
 import re
-import blinker
 import smtplib
 import sys
 import time
@@ -29,6 +28,7 @@ from email.header import Header
 from email.utils import formatdate, formataddr, make_msgid, parseaddr
 from contextlib import contextmanager
 
+import blinker
 from flask import current_app
 
 PY3 = sys.version_info[0] == 3
@@ -36,12 +36,13 @@ PY3 = sys.version_info[0] == 3
 PY34 = PY3 and sys.version_info[1] >= 4
 
 if PY3:
-    string_types = str,
+    string_types = str
     text_type = str
     from email import policy
+
     message_policy = policy.SMTP
 else:
-    string_types = basestring,
+    string_types = basestring
     text_type = unicode
     message_policy = None
 
@@ -55,7 +56,7 @@ class FlaskMailUnicodeDecodeError(UnicodeDecodeError):
 
     def __str__(self):
         original = UnicodeDecodeError.__str__(self)
-        return '%s. You passed in %r (%s)' % (original, self.obj, type(self.obj))
+        return '{}. You passed in {} ({})'.format(original, self.obj, type(self.obj))
 
 
 def force_text(s, encoding='utf-8', errors='strict'):
@@ -86,8 +87,9 @@ def force_text(s, encoding='utf-8', errors='strict'):
             raise FlaskMailUnicodeDecodeError(s, *e.args)
         else:
             s = ' '.join([force_text(arg, encoding, strings_only,
-                    errors) for arg in s])
+                                     errors) for arg in s])
     return s
+
 
 def sanitize_subject(subject, encoding='utf-8'):
     try:
@@ -98,6 +100,7 @@ def sanitize_subject(subject, encoding='utf-8'):
         except UnicodeEncodeError:
             subject = Header(subject, 'utf-8').encode()
     return subject
+
 
 def sanitize_address(addr, encoding='utf-8'):
     if isinstance(addr, string_types):
@@ -131,7 +134,8 @@ def _has_newline(line):
         return True
     return False
 
-class Connection(object):
+
+class Connection:
     """Handles connection to host."""
 
     def __init__(self, mail):
@@ -175,8 +179,8 @@ class Connection(object):
         assert message.send_to, "No recipients have been added"
 
         assert message.sender, (
-                "The message does not specify a sender and a default sender "
-                "has not been configured")
+            "The message does not specify a sender and a default sender "
+            "has not been configured")
 
         if message.has_bad_headers():
             raise BadHeaderError
@@ -216,7 +220,7 @@ class BadHeaderError(Exception):
     pass
 
 
-class Attachment(object):
+class Attachment:
     """Encapsulates file attachment information.
 
     :versionadded: 0.3.5
@@ -236,7 +240,7 @@ class Attachment(object):
         self.headers = headers or {}
 
 
-class Message(object):
+class Message:
     """Encapsulates an email message.
 
     :param subject: email subject header
@@ -398,7 +402,7 @@ class Message(object):
     def as_bytes(self):
         if PY34:
             return self._message().as_bytes()
-        else: # fallback for old Python (3) versions
+        else:  # fallback for old Python (3) versions
             return self._message().as_string().encode(self.charset or 'utf-8')
 
     def __str__(self):
@@ -466,7 +470,7 @@ class Message(object):
             Attachment(filename, content_type, data, disposition, headers))
 
 
-class _MailMixin(object):
+class _MailMixin:
 
     @contextmanager
     def record_messages(self):
